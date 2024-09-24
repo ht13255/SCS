@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 import os
 
 # Streamlit 앱 제목
-st.title("Google Drive Video Processing")
+st.title("Google Drive Video Processing (Max 5GB)")
 
 # Google Drive 비디오 링크 입력
 drive_url = st.text_input("Enter Google Drive Video Link:")
@@ -35,6 +35,11 @@ def download_drive_file(file_id):
     response = requests.get(download_url, stream=True)
     
     if response.status_code == 200:
+        file_size = int(response.headers.get('Content-Length', 0))
+        if file_size > 5 * 1024 * 1024 * 1024:  # 5GB 제한
+            st.error("File is too large. The maximum allowed size is 5GB.")
+            return None
+        
         temp_file = NamedTemporaryFile(delete=False, suffix=".mp4")
         with temp_file as f:
             for chunk in response.iter_content(chunk_size=8192):
